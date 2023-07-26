@@ -1,0 +1,11 @@
+E;Black
+P;Serperior;50;55;45
+P;Samurott;40;50;40
+P;Emboar;40;55;50
+P;Gigalith;35;40;50
+P;Hydreigon;55;55;55
+P;Haxorus;55;55;55
+P;Gothitelle;40;55;45
+P;Reshiram;60;60;55
+P;Zekrom;60;55;60
+P;Kyurem;60;60;60

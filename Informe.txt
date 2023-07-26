@@ -1,0 +1,77 @@
+-Aclaraciones.
+Los archivos tienen que ser compilados y ejecutados en una computadora de arquitectura de 64 bits o puede que haya problemas con los size_t.
+
+Agregué 3 líneas de código a mi TDA ABB (línea 259, 260 y 261) porque este presentaba un stack smashing en el recorrido inorden al llenar el vector.
+
+Modifiqué el TDA lista añadiendo un pila_destruir. También le añadí un destructor de elementos, un pila_crear (crea la pila) y un pila_elementos (me devuelve la cantidad de elementos de la pila).
+Necesitaba cambiar el destructor en la lista para poder usarla en las funciones donde cambio los Pokémon, ya que el destructor me liberaba la memoria del Pokémon. Así que añadí una primitiva llamada lista_cambiar_destructor.
+
+-Lo entregado.
+
+Lo entregado son varíos archivos: 
+aventura_pokemon.c - El main con el menú principal y donde se crea el struct juego y se libera al final.
+batallas.c y batallas.h - Las 5 funciones de batalla Pokémon.
+decidir_batalla.c y decidir_batalla.h - En estos archivos esta la función donde se decide que tipo de batalla se usará en los gimnasios. También se pueden añadir nuevas batallas.
+gimnasio.c y gimnasio.h - Donde esta el menú del gimnasio y sus funciones. Acá también cargo los gimnasios.
+interfaz.c y interfaz.h - En la interfaz cargo el personaje principal.
+heap.c y heap.h - El TDA heap.
+lista.c y lista.h - El TDA lista y con funciones de pila y cola.
+gimnasios_teselia_default.txt - Archivo de gimnasios por si el usuario no cargo ningún gimnasio.
+personaje_principal_default.txt - Archivo del personaje principal por lo mismo.
+README.txt - Esto.
+
+-Cómo compilarlo.
+
+Yo lo compilo como compilabamos los TDAs a lo largo de la cursada.
+
+Para compilar lo entregado, tenemos que tener C instalado. Ahora movemos todos los archivos a una carpeta vacía de nuestra preferencia. En la terminal se escribe:
+
+	ls -> Esto es para saber donde estamos parados.
+
+Saldrá una lista con los nombres de las carpetas que tenemos, buscamos donde tenemos los archivos.
+
+	cd Carpeta -> Para poder acceder a la carpeta en la terminal.
+
+Ahora, ubicados en la carpeta, podemos compilar el programa.
+
+gcc *.c -o tp2 -g -std=c99 -Wconversion -Wtype-limits -pedantic -Werror -O0 -> El gcc es el lenguaje C, el *.c dice que compile todos los archivos que terminen en .c, tp2 es el nombre del compilado y lo demás son los flags de warning para el código.
+
+-Cómo ejecutarlo.
+
+Con la siguiente línea ejecutamos el programa:
+
+./tp2
+
+Si queremos ver si el programa pierde memoria o tiene errores, podemos correr Valgrind con la siguiente línea:
+
+valgrind --leak-check=full --track-origins=yes --show-reachable=yes ./tp2
+
+-Estructuras elegidas.
+
+Los entrenadores del gimnasio son lista_t* pero los usé como pila (otra vez, usando solamente las funciones de esta) así el primero en ser leído, que sería el líder, es el último que tenemos que combatir.
+
+Los Pokémon de los entrenadores son una lista. De esta manera me es más sencillo recorrer para mostrar los Pokémon del lider y extraerle el que queramos.
+
+Con los Pokémon obtenidos del personaje principal usé una lista que puedo recorrer y mostrar los Pokémon obtenidos, además de poder intercambiarlos de lugar cuando quiera cambiarlos. Los pokémon para combatir son una lista de punteros a la lista de Pokémon obtenidos (me han sugerido un vector pero desistí de la idea).
+
+Usé el TDA heap para que el gimnasio más fácil siempre sea el siguiente a combatir.
+En la función heap_extraer_raiz, le hago realloc a un auxiliar y no me fijo si falla (if (!auxiliar)) ya que a veces me quedaba 0 elementos en el vector y entraba al if, ya que estaba vacío.
+
+-Cómo funciona el programa.
+
+Empieza en aventura_pokemon.c en el main donde hay un menú en el que se puede crear un personaje con un archivo, añadir un gimnasio, también con un archivo, empezar las batallas en los gimnasios o simular la partida. Esto nos muestra las opciones por letra.
+El usuario puede escribir solo la letra requerida (ejemplo: I) o escribir toda una frase con la letra requerida al principio (ejemplo: Ivern), el programa se lo toma como válido igual.
+Si hay algún error en los archivos de personaje el programa termina y libera toda la memoria reservada.
+Lo mismo pasa con los archivos de gimnasio, aunque haya leído con exito cualquier otro archivo de gimnasio o cualquier gimnasio en el mismo archivo, si hay algún error se cierra y se libera todo.
+También si se escribe mal la ruta de los archivos, se cierra todo el programa.
+Al escoger la opción de empezar las batallas, nos lleva a un menú de gimnasio y tenemos más opciones; mostrar al entrenador principal, que muestra el nombre de este y recorre la lista de sus Pokémon mostrando los nombres de estos y sus características.
+Mostrar la información del gimnasio actual. Esto solo muestra en que gimnasio estamos y el siguiente entrenador a combatir.
+Cambiar los Pokémon de batalla. Acá muestra los Pokémon obtenidos del personaje principal, le deja al usuario escribir las posiciones del que quiere sacar y el que quiere incluir, y los intercambia de lugar. En realidad borra de la posición e inserta, pero es casi lo mismo.
+La última opción es realizar la próxima batalla. Acá pelea el primer Pokémon del personaje principal en la lista de Pokémon de combate, contra el primer Pokémon de la lista del entrenador a luchar.
+El tipo de batalla depende del ID de los gimnasios. Hay 5 batallas diferentes, por ejemplo: batalla de tipos, donde gana el que tenga un tipo ventajoso (bajo mi propio criterio).
+Si en las batallas sucede algún error, ya que no existen los empates, gana el primer Pokémon automáticamente.
+Al terminar una de las peleas, se tiene que apretar N para continuar a la siguiente. Si el personaje principal gana el combate contra el entrenador, va al siguiente si es que hay más o si era el líder sale un menú de victoria donde puede tomar el Pokémon del líder e incorporarlo al equipo, cambiar los Pokémon de batalla o ir al próximo gimnasio.
+Al ir al próximo gimnasio, si quedan más gimnasios vuelve al menú de gimnasio. Si ya no hay más, saldrá un menú de victoria felicitando al usuario por su ascenso a maestro Pokémon.
+Si al usuario le derrotan todos los Pokémon, saldrá el menú de derrota. En este menú se puede cambiar los Pokémon de batalla (para tener una mejor oportunidad en la siguiente batalla), reintentar el gimnasio (empieza la batalla desde el último entrenador que lo derroto) o finalizar la partida.
+
+En el interfaz.h decidí juntar todas las constantes que usé durante este trabajo, ya que me parecía más práctico cambiar las constantes ahí cuando lo necesitase. También puse todas las bibliotecas ahí, de esta manera con solo incluir interfaz.h ya tenía las bibliotecas que quisiera.
